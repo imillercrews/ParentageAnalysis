@@ -1,0 +1,188 @@
+##IBS and covariance matrix of 2brad data
+#IBS matrix used fitered sites and run on phase 2 tank F2 males
+######
+#set working directory
+setwd("/stor/work/Hofmann/projects/aburtoni_paternity_testing/Paternity_Testing/2bRAD_data/Data/Matrix/Phase2/TankF2")
+
+#load libraries
+library(tidyverse)
+library(ggfortify)
+library(pvclust)
+library(gplots)
+library(igraph)
+
+#read in bam/names order file
+#change to list of bams name used
+samples=read.delim('bamsphase2f2males',header=F)
+colnames(samples)='File.name'
+samples$order=seq(1, nrow(samples), by=1)
+
+#change to sample names
+data.bam.names=read.csv('bams.ind.csv')
+rownames(data.bam.names)=data.bam.names$File.name.ind
+data.bam.names.reduced=data.bam.names[,c(2,4:6,12:14)]
+#merge sample names and counts data
+sample.data=merge(data.bam.names.reduced,samples)
+
+#load in ibs matrix
+m.ibs <- as.matrix(read.table("IBS.TankF2.males.ibsMat"))
+colnames(m.ibs)=sample.data$Sample.name
+rownames(m.ibs)=sample.data$Sample.name
+
+#load in covariance matrix
+m.cov <- as.matrix(read.table("IBS.TankF2.males.covMat"))
+colnames(m.cov)=sample.data$Sample.name
+rownames(m.cov)=sample.data$Sample.name
+
+######
+##subsetting matrices
+#subset names by sex
+male.names=subset(sample.data$Sample.name,sample.data$Sex=='M')
+female.names=subset(sample.data$Sample.name,sample.data$Sex=='F')
+brood.names=subset(sample.data$Sample.name,sample.data$Sex=='B')
+adult.names=brood.names=subset(sample.data$Sample.name,sample.data$Sex!='B')
+
+#subset names by phase
+phase.1.names=subset(sample.data$Sample.name,sample.data$Phase==1)
+phase.2.names=subset(sample.data$Sample.name,sample.data$Phase==2)
+
+#subset phase 1 by no females
+phase.1.names.no.females=subset(sample.data$Sample.name,sample.data$Phase==1&sample.data$Sex!='F')
+
+#subset phase 1 by no males
+phase.1.names.no.males=subset(sample.data$Sample.name,sample.data$Phase==1&sample.data$Sex!='M')
+
+
+#subset phase 2 by tank
+phase.2.B2.names=subset(sample.data$Sample.name,sample.data$Tank=='B2')
+phase.2.C2.names=subset(sample.data$Sample.name,sample.data$Tank=='C2')
+phase.2.D2.names=subset(sample.data$Sample.name,sample.data$Tank=='D2')
+phase.2.E2.names=subset(sample.data$Sample.name,sample.data$Tank=='E2')
+phase.2.F2.names=subset(sample.data$Sample.name,sample.data$Tank=='F2')
+phase.2.G2.names=subset(sample.data$Sample.name,sample.data$Tank=='G2')
+
+#subset phase 2 by tank and no females
+phase.2.B2.names.no.females=subset(sample.data$Sample.name,sample.data$Tank=='B2'&sample.data$Sex!='F')
+phase.2.C2.names.no.females=subset(sample.data$Sample.name,sample.data$Tank=='C2'&sample.data$Sex!='F')
+phase.2.D2.names.no.females=subset(sample.data$Sample.name,sample.data$Tank=='D2'&sample.data$Sex!='F')
+phase.2.E2.names.no.females=subset(sample.data$Sample.name,sample.data$Tank=='E2'&sample.data$Sex!='F')
+phase.2.F2.names.no.females=subset(sample.data$Sample.name,sample.data$Tank=='F2'&sample.data$Sex!='F')
+phase.2.G2.names.no.females=subset(sample.data$Sample.name,sample.data$Tank=='G2'&sample.data$Sex!='F')
+
+#subset phase 2 by tank and no males
+phase.2.B2.names.no.males=subset(sample.data$Sample.name,sample.data$Tank=='B2'&sample.data$Sex!='M')
+phase.2.C2.names.no.males=subset(sample.data$Sample.name,sample.data$Tank=='C2'&sample.data$Sex!='M')
+phase.2.D2.names.no.males=subset(sample.data$Sample.name,sample.data$Tank=='D2'&sample.data$Sex!='M')
+phase.2.E2.names.no.males=subset(sample.data$Sample.name,sample.data$Tank=='E2'&sample.data$Sex!='M')
+phase.2.F2.names.no.males=subset(sample.data$Sample.name,sample.data$Tank=='F2'&sample.data$Sex!='M')
+phase.2.G2.names.no.males=subset(sample.data$Sample.name,sample.data$Tank=='G2'&sample.data$Sex!='M')
+
+#subset phase 2 by tank and males
+phase.2.B2.names.males=subset(sample.data$Sample.name,sample.data$Tank=='B2'&sample.data$Sex=='M')
+phase.2.C2.names.males=subset(sample.data$Sample.name,sample.data$Tank=='C2'&sample.data$Sex=='M')
+phase.2.D2.names.males=subset(sample.data$Sample.name,sample.data$Tank=='D2'&sample.data$Sex=='M')
+phase.2.E2.names.males=subset(sample.data$Sample.name,sample.data$Tank=='E2'&sample.data$Sex=='M')
+phase.2.F2.names.males=subset(sample.data$Sample.name,sample.data$Tank=='F2'&sample.data$Sex=='M')
+phase.2.G2.names.males=subset(sample.data$Sample.name,sample.data$Tank=='G2'&sample.data$Sex=='M')
+
+#subset phase 2 by tank and males
+phase.2.B2.names.females=subset(sample.data$Sample.name,sample.data$Tank=='B2'&sample.data$Sex=='F')
+phase.2.C2.names.females=subset(sample.data$Sample.name,sample.data$Tank=='C2'&sample.data$Sex=='F')
+phase.2.D2.names.females=subset(sample.data$Sample.name,sample.data$Tank=='D2'&sample.data$Sex=='F')
+phase.2.E2.names.females=subset(sample.data$Sample.name,sample.data$Tank=='E2'&sample.data$Sex=='F')
+phase.2.F2.names.females=subset(sample.data$Sample.name,sample.data$Tank=='F2'&sample.data$Sex=='F')
+phase.2.G2.names.females=subset(sample.data$Sample.name,sample.data$Tank=='G2'&sample.data$Sex=='F')
+
+#########
+## clustering  of tank F2 in phase 2
+#subset IBS matrix by phase 2 Tank F2
+#m.ibs.F2=as.data.frame(m.ibs)
+#m.ibs.F2=m.ibs.F2[rownames(m.ibs.F2) %in% phase.2.F2.names,colnames(m.ibs.F2) %in% phase.2.F2.names]
+#m.ibs.F2=data.matrix(m.ibs.F2)
+
+#IBS matrix whole tank
+#png("pvclut.phase.2.tank.F2.png", width = 1800, height = 700)
+#plot(pvclust(m.ibs.F2, method.hclust = "average",method.dist = 'euclidian'), main='Phase 2 Tank F2')
+#dev.off()
+
+#subset IBS matrix by phase 1 no females
+m.ibs.F2.no.females=as.data.frame(m.ibs)
+m.ibs.F2.no.females=m.ibs.F2.no.females[rownames(m.ibs.F2.no.females) %in% phase.2.F2.names.no.females,colnames(m.ibs.F2.no.females) %in% phase.2.F2.names.no.females]
+m.ibs.F2.no.females=data.matrix(m.ibs.F2.no.females)
+
+png("pvclut.phase.2.tank.F2.no.females.png", width = 1800, height = 700)
+plot(pvclust(m.ibs.F2.no.females, method.hclust = "average",method.dist = 'euclidian'), main='Phase 2 Tank F2 No Females')
+dev.off()
+
+
+#network undirected matrix with edge's labeled
+g=graph_from_adjacency_matrix(m.ibs.F2.no.females,mode='undirected',weighted = TRUE)
+layout <- layout.mds(g, dist = as.matrix(m.ibs.F2.no.females))
+
+#color nodes
+g=set_vertex_attr(g, "Sex", value=sample.data$Sex)
+V(g)$color=V(g)$Sex 
+V(g)$color=gsub("2","red",V(g)$color) 
+V(g)$color=gsub("1","blue",V(g)$color)
+
+png("mds.network.phase.2.tank.F2.no.females.png", width = 1800, height = 700)
+plot(g, layout = layout, vertex.size = 3, edge.label=round(E(g)$weight, 3), main='Tank F2 Males')
+dev.off()
+
+#just edges under 0.2
+m.ibs.F2.no.females.2=ifelse(m.ibs.F2.no.females>=0.2,0,m.ibs.F2.no.females)
+h=graph_from_adjacency_matrix(m.ibs.F2.no.females.2,mode='undirected',weighted = TRUE)
+
+#color nodes
+h=set_vertex_attr(h, "Sex", value=sample.data$Sex)
+V(h)$color=V(h)$Sex 
+V(h)$color=gsub("2","red",V(h)$color) 
+V(h)$color=gsub("1","blue",V(h)$color)
+
+png("cut.mds.network.phase.2.tank.F2.no.females.png", width = 1800, height = 700)
+plot(h, layout = layout, vertex.size = 3, edge.label=round(E(h)$weight, 3), main= 'Tank F2 Males Cut')
+dev.off()
+
+#subset IBS matrix by phase 1 males
+m.ibs.F2.males=as.data.frame(m.ibs)
+m.ibs.F2.males=m.ibs.F2.males[rownames(m.ibs.F2.males) %in% phase.2.F2.names.males,colnames(m.ibs.F2.males) %in% phase.2.F2.names.males]
+m.ibs.F2.males=data.matrix(m.ibs.F2.males)
+
+png("pvclut.phase.2.tank.F2.males.png", width = 1800, height = 700)
+plot(pvclust(m.ibs.F2.males, method.hclust = "average",method.dist = 'euclidian'), main='Phase 2 Tank F2 Males')
+dev.off()
+
+
+#network undirected matrix with edge's labeled
+g=graph_from_adjacency_matrix(m.ibs.F2.males,mode='undirected',weighted = TRUE)
+layout <- layout.mds(g, dist = as.matrix(m.ibs.F2.males))
+
+png("mds.network.phase.2.tank.F2.males.png", width = 1800, height = 700)
+plot(g, layout = layout, vertex.size = 3, edge.label=round(E(g)$weight, 3), main='Tank F2 Males')
+dev.off()
+
+#just edges under 0.2
+m.ibs.F2.males.2=ifelse(m.ibs.F2.males>=0.2,0,m.ibs.F2.males)
+h=graph_from_adjacency_matrix(m.ibs.F2.males.2,mode='undirected',weighted = TRUE)
+
+png("cut.mds.network.phase.2.tank.F2.males.png", width = 1800, height = 700)
+plot(h, layout = layout, vertex.size = 3, edge.label=round(E(h)$weight, 3), main= 'Tank F2 Males Cut')
+dev.off()
+##########
+#subset IBS matrix by phase 1 no males
+m.ibs.F2.no.males=as.data.frame(m.ibs)
+m.ibs.F2.no.males=m.ibs.F2.no.males[rownames(m.ibs.F2.no.males) %in% phase.2.F2.names.no.males,colnames(m.ibs.F2.no.males) %in% phase.2.F2.names.no.males]
+m.ibs.F2.no.males=data.matrix(m.ibs.F2.no.males)
+
+png("pvclut.phase.2.tank.F2.no.males.png", width = 1800, height = 700)
+plot(pvclust(m.ibs.F2.no.males, method.hclust = "average",method.dist = 'euclidian'), main='Phase 2 Tank F2 No males')
+dev.off()
+
+#subset IBS matrix by phase 1 females
+m.ibs.F2.females=as.data.frame(m.ibs)
+m.ibs.F2.females=m.ibs.F2.females[rownames(m.ibs.F2.females) %in% phase.2.F2.names.females,colnames(m.ibs.F2.females) %in% phase.2.F2.names.females]
+m.ibs.F2.females=data.matrix(m.ibs.F2.females)
+
+png("pvclut.phase.2.tank.F2.females.png", width = 1800, height = 700)
+plot(pvclust(m.ibs.F2.females, method.hclust = "average",method.dist = 'euclidian'), main='Phase 2 Tank F2 females')
+dev.off()
