@@ -27,7 +27,7 @@ https://www.ncbi.nlm.nih.gov/bioproject/PRJNA754415
          
 <details>
            <summary> Converting genotype liklihood file for use with WPOI </summary>
-           <p>In the folder 'Filenames_2bRAD_ParentageAnalysis' are the R scripts and all files needed to generate appropriate sample files. This is mainly important for creating the 'data.geno.filter.trans.RData' from the genotype probabilities output from ANGSD in beagle file format. The first R script 'Create ID file for samples.R' is needed to create the 'bams.ind.csv' and 'bams.ind.geno.csv'. These files along with output from the ANGSD commands, 'filtered2.pos'and 'ddB.geno.likelihood.beagle', are used by the R script 'Pat geno likelihoods filtered.R' to generate the 'data.geno.filter.trans.RData' used in the WOPI example.</p>
+           <p>In the folder 'Filenames_2bRAD_ParentageAnalysis' are the R scripts and all files needed to generate appropriate sample files. This is mainly important for creating the 'data.geno.filter.trans.RData' from the genotype probabilities output from ANGSD in beagle file format. The first R script 'Create ID file for samples.R' is needed to create the 'bams.ind.csv' and 'bams.ind.geno.csv'. These files along with output from the ANGSD commands, 'filtered2.pos'and 'ddB.geno.likelihood.beagle', are used by the R script 'Pat geno likelihoods filtered.R' to generate the 'data.geno.filter.trans.RData' used in the WOPI example. To create the data used in the WOPI example from 'data.geno.filter.trans.RData' use the R script 'Create files for WOPI.R'.</p>
          </details>
 
 <details>
