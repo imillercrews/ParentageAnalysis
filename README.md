@@ -19,8 +19,6 @@ https://www.ncbi.nlm.nih.gov/bioproject/PRJNA754415
            <summary> 2bRAD mapping commands: from fastq to bams </summary>
            <p>Using command line script 'Bams_2bRAD_ParentageAnalysis.txt' goes from 2bRAD sequencing data as fastq files to output bams, with either a reference or reference-free de novo approach.  </p>
          </details>
-         
-<details>
 
 <details>
            <summary> ANGSD commands: from bams to genotype probabilities and IBS matrix </summary>
