@@ -3,6 +3,7 @@
 Isaac Miller-Crews, imillercrews@utexas.edu
 
 The parentage analysis pipeline has been described in: https://www.fsigenetics.com/article/S1872-4973(21)00127-7/fulltext
+
 Miller-Crews, I., Matz, M. V., & Hofmann, H. A. (2021). A 2b-RAD parentage analysis pipeline for complex and mixed DNA samples. Forensic Science International: Genetics, 55. https://doi.org/10.1016/j.fsigen.2021.102590
 
 All sample data from the paper can be found on NCBI Bioproject RJNA754415 and the file 'renaming.bams' can be used to convert from SRA file name to file name used in scripts.
