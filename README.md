@@ -1,4 +1,5 @@
-# ParentageAnalysis
+# Parentage analysis pipeline
+
 Isaac Miller-Crews, imillercrews@utexas.edu
 
 The parentage analysis pipeline has been described in: https://www.fsigenetics.com/article/S1872-4973(21)00127-7/fulltext
@@ -24,10 +25,14 @@ Miller-Crews, I., Matz, M. V., & Hofmann, H. A. (2021). A 2b-RAD parentage analy
          </details>
          
 <details>
-           <summary> IBS Script </summary>
-           <p>Content 1 Content 1 Content 1 Content 1 Content 1</p>
+           <summary> IBS known triads Script </summary>
+           <p>In the folder 'IBS_2bRAD_ParentageAnalysis' are the rscripts and all files, including IBS matrices, needed to generate clustered IBS matrices for known triad samples. </p>
          </details>
-
+         
+<details>
+           <summary> IBS community Script </summary>
+           <p>In the folder 'IBS_community_scripts' are the rscripts and all files, including IBS matrices, needed to generate clustered IBS matrices for each naturalistic community. </p>
+         </details>
          
 <details>
            <summary> Weighted CPI Script </summary>
