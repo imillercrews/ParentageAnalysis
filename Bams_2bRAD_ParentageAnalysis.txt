@@ -1,0 +1,308 @@
+#### Parentage Analysis 2bRAD
+### From raw fastq files to bams
+### Following 2bRAD directions from: https://github.com/z0on/2bRAD_GATK/blob/master/2bRAD_README.txt
+
+# =============================
+### Installations
+
+
+#need to load before bowtie
+module load intel/17.0.4
+#load in bowtie2
+module load bowtie/2.3.2
+#load in samtools
+module load samtools
+
+#others
+module load perl
+module load picard-tools
+
+------- cd-hit:
+
+git clone https://github.com/weizhongli/cdhit.git
+cd cd-hit
+make
+
+##ANGSD: 
+
+# install xz first from https://tukaani.org/xz/
+cd
+wget https://tukaani.org/xz/xz-5.2.3.tar.gz --no-check-certificate
+tar vxf xz-5.2.3.tar.gz 
+cd xz-5.2.3/
+./configure --prefix=$HOME/xz-5.2.3/
+make
+make install
+
+# edit .bashrc:
+nano .bashrc
+   export LD_LIBRARY_PATH=$HOME/xz-5.2.3/lib:$LD_LIBRARY_PATH
+   export LIBRARY_PATH=$HOME/xz-5.2.3/lib:$LIBRARY_PATH
+   export C_INCLUDE_PATH=$HOME/xz-5.2.3/include:$C_INCLUDE_PATH
+#logout
+
+# re-login
+
+# now, install htslib:
+cd
+git clone https://github.com/samtools/htslib.git
+cd htslib
+make CFLAGS=" -g -Wall -O2 -D_GNU_SOURCE -I$HOME/xz-5.2.3/include"
+#if error, try running below code before re-running make command
+# git submodule update --init --recursive
+
+#install angsd
+cd
+git clone https://github.com/ANGSD/angsd.git 
+cd angsd
+make HTSSRC=../htslib
+
+# now adding ANGSD to $PATH
+cd
+nano .bashrc
+# section 2:
+   export PATH=$HOME/angsd:$PATH
+   export PATH=$HOME/angsd/misc:$PATH
+# save (Ctl-O, Ctl-X)
+#logout and login afterwards
+
+export PATH=$HOME/trinityrnaseq-v2.13.2:$PATH
+
+## downloading and installing all 2bRAD scripts in $HOME/bin (or change to whatever directory you want)
+cd
+mkdir bin 
+cd ~/bin 
+# cloning github repositories
+git clone https://github.com/z0on/2bRAD_denovo.git
+git clone https://github.com/z0on/2bRAD_GATK.git
+# move scripts to ~/bin from sub-directories
+mv 2bRAD_denovo/* . 
+mv 2bRAD_GATK/* . 
+# remove now-empty directory
+rm -rf 2bRAD_denovo 
+rm -rf 2bRAD_GATK 
+
+# designating all .pl and .py files (perl and python scripts) as executable
+chmod +x *.pl 
+chmod +x *.py
+chmod +x *.R
+
+# adding ~/bin to your $PATH 
+cd
+nano .bashrc
+# paste this where appropriate (note: .bashrc configuration might be specific to your cluster, consult your sysadmin if in doubt)
+   export PATH=$HOME/bin:$PATH
+
+# Ctl-o, Ctl-x  (to save and exit in nano)
+# log out and re-login to make sure .bashrc changes took effect
+
+# does it work?
+# try running a script from $HOME:
+cd
+2bRAD_trim_launch.pl
+# if you get "command not found" something is wrong
+
+### checking fastq files
+#Count reads in fastq
+echo $(cat *.fastq|wc -l)/4|bc
+#count files with .fastq ending
+ls -dq *fastq | wc -l
+
+# =============================
+### demultiplexing pooled fastq files
+## concatenating pairs of raw files according to the value given as Index in the file name:
+ngs_concat.pl fastq "Pool-(.+)_L00(..)"
+
+##Fastq quality control
+module load fastqc
+fastqc *.fq
+export PATH="/work/projects/BioITeam/ls5/opt/multiqc-1.0:$PATH"
+export PYTHONPATH="/work/projects/BioITeam/ls5/lib/python2.7/annab-packages:$PYTHONPATH"
+multiqc .
+#Open multiqc_report.html by copying to folder and then open with chrome
+
+### Splitting by in-read barcode, deduplicating and quality-filtering the reads
+2bRAD_trim_launch_dedup.pl fq > trims
+#>>> make cc a launcher job and run it
+launcher_creator.py -j trims -n trims -t 5:00:00 -e imillercrews@utexas.edu -a NeuroEthoEvoDevo -q normal -N 1
+sbatch trims.slurm
+
+## do we have expected number of *.tr0 files created?
+ls -l *.tr0 | wc -l
+#144
+# quality filtering using fastx_toolkit (install fastx_toolkit if you don't have this module)
+module load fastx_toolkit
+ls *.tr0 | perl -pe 's/^(\S+)\.tr0$/cat $1\.tr0 \| fastq_quality_filter -q 20 -p 100 >$1\.trim/' >filt0
+
+# NOTE: run the next line ONLY if your qualities are 33-based 
+# (if you don't know just try to see if it works eventually, if you get errors from fastx_toolkit, try the other one):
+	cat filt0 | perl -pe 's/filter /filter -Q33 /' > filt
+#if you did NOT run the line above, run this one (after removing # symbol):
+#	mv filt0 filt
+
+# execute all commands in filt file (serial or parallel using Launcher, if your system allows) 
+launcher_creator.py -j filt -n filt -t 2:00:00 -e imillercrews@utexas.edu -a NeuroEthoEvoDevo -q normal -N 1
+sbatch filt.slurm
+# do we have expected number of *.trim files created?
+ls -l *.trim | wc -l
+#144
+
+## trimmed and filtered files added to BioProject
+
+#====================
+### Mapping to denovo genome
+# denovo RAD business (skip to next "#========" if you have genome reference):
+
+# 'uniquing' ('stacking') individual trimmed fastq reads:
+ls *.trim | perl -pe 's/^(.+)$/uniquerOne.pl $1 >$1\.uni/' >unii
+
+# execute all commands written to unii...
+launcher_creator.py -j unii -n unii -t 1:00:00 -e imillercrews@utexas.edu -a NeuroEthoEvoDevo -q normal -N 1
+
+sbatch unii.slurm
+
+# Done! do you have .uni for all your samples?... 
+ls -l *.uni | wc -l  
+
+# collecting common tags (= major alleles)
+# merging uniqued files (set minInd to >10, or >10% of total number of samples, whichever is greater)
+#14
+mergeUniq.pl uni minInd=14 >all.uniq
+
+# discarding tags that have more than 7 observations without reverse-complement
+awk '!($3>7 && $4==0) && $2!="seq"' all.uniq >all.tab
+
+# creating fasta file out of merged and filtered tags:
+awk '{print ">"$1"\n"$2}' all.tab > all.fasta
+
+# clustering allowing for up to 3 mismatches (-c 0.91); the most abundant sequence becomes reference
+/home1/04315/imc/cdhit/cd-hit-est -i all.fasta -o cdh_alltags.fas -aL 1 -aS 1 -g 1 -c 0.91 -M 0 -T 0  
+
+#------------
+# making fake reference genome (of 30 chromosomes) out of major-allele tags
+# need bowtie2 and samtools for indexing
+
+concatFasta.pl fasta=cdh_alltags.fas num=20
+
+# formatting fake genome
+export GENOME_FASTA=cdh_alltags_cc.fasta
+export GENOME_DICT=cdh_alltags_cc.dict 
+bowtie2-build $GENOME_FASTA $GENOME_FASTA
+samtools faidx $GENOME_FASTA
+
+#-------------
+# Mapping reads to de novo reference and formatting bam files 
+
+# for denovo: map reads to fake genome: 
+GENOME_FASTA=cdh_alltags_cc.fasta
+
+# mapping with --local option, enables clipping of mismatching ends (guards against deletions near ends of RAD tags)
+2bRAD_bowtie2_launch.pl '\.trim$' $GENOME_FASTA > maps
+
+launcher_creator.py -j maps -n maps -t 8:00:00 -e imillercrews@utexas.edu -a NeuroEthoEvoDevo -q normal -N 1
+sbatch maps.slurm
+
+#check alignment rates
+#two samples have low alignment rates
+>alignmentRates
+for F in `ls *trim`; do 
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - maps.e* -A 4 | tail -1 | perl -pe 's/maps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>alignmentRates;
+done
+
+ls *.sam > sams
+cat sams | wc -l  # number should match number of trim files
+
+# next stage is compressing, sorting and indexing the SAM files, so they become BAM files:
+module load samtools
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+launcher_creator.py -j s2b -n s2b -t 8:00:00 -e imillercrews@utexas.edu -a NeuroEthoEvoDevo -q normal -N 1
+sbatch s2b.slurm
+	 
+# run all commands listed in s2b file
+ls *bam | wc -l  # should be the same number as number of trim files
+
+# BAM files are the input into various genotype calling / popgen programs, this is the main interim result of the analysis. Archive them.
+
+
+# =============================
+### Mapping to reference genomes
+### getting reference genome
+##Haplochromis burtoni genome
+wget ftp://ftp.ncbi.nih.gov/genomes/Haplochromis_burtoni/CHR_Un/hbu_ref_AstBur1.0_chrUn.fa.gz
+# assuming we have a fasta file mygenome.fasta and it lives in the directory $WORK/db
+export GENOME_FASTA=$WORK/db/Burtoni/hbu_ref_AstBur1.0_chrUn.fa
+export GENOME_DICT=$WORK/db/Burtoni/hbu_ref_AstBur1.0_chrUn.dict 
+# indexing genome for bowtie2 mapper
+bowtie2-build hbu_ref_AstBur1.0_chrUn.fa $GENOME_FASTA
+samtools faidx $GENOME_FASTA
+export GENOME_DICT=$WORK/db/Burtoni/hbu_ref_AstBur1.0_chrUn.dict
+
+##Oreochromis niloticus genome
+wget -r -l1 --no-parent -A.fa.gz ftp://ftp.ncbi.nih.gov/genomes/Oreochromis_niloticus/Assembled_chromosomes/seq/ 
+#concatenate genome
+cat *.fa > O_niloticus_genome.fasta
+# assuming we have a fasta file mygenome.fasta and it lives in the directory $WORK/db
+export GENOME_FASTA=$WORK/db/Oreochromis/O_niloticus_genome.fasta
+export GENOME_DICT=$WORK/db/Oreochromis/O_niloticus_genome.dict 
+# indexing genome for bowtie2 mapper
+bowtie2-build O_niloticus_genome.fasta $GENOME_FASTA
+samtools faidx $GENOME_FASTA
+export GENOME_DICT=$WORK/db/O_niloticus_genome.dict 
+java -jar $TACC_PICARD_T_DIR/picard.jar CreateSequenceDictionary R=$GENOME_FASTA  O=$GENOME_DICT
+
+###Mapping reads to reference (created Oreochromis and burtoni reference folders)
+# for reference-based: mapping with --local option, enables clipping of mismatching ends (guards against deletions near ends of RAD tags)
+##Oreochromis
+export GENOME_FASTA=$WORK/db/Oreochromis/O_niloticus_genome.fasta
+export GENOME_DICT=$WORK/db/Oreochromis/O_niloticus_genome.dict 
+2bRAD_bowtie2_launch.pl '\.trim$' $GENOME_FASTA > bt2
+launcher_creator.py -j bt2 -n bt2 -t 2:00:00 -e imillercrews@utexas.edu -a NeuroEthoEvoDevo -q normal -N 1
+sbatch bt2.slurm
+
+##Burtoni
+export GENOME_FASTA=$WORK/db/Burtoni/hbu_ref_AstBur1.0_chrUn.fa
+export GENOME_DICT=$WORK/db/Burtoni/hbu_ref_AstBur1.0_chrUn.dict 
+2bRAD_bowtie2_launch.pl '\.trim$' $GENOME_FASTA > bt2
+launcher_creator.py -j bt2 -n bt2B -t 2:00:00 -e imillercrews@utexas.edu -a NeuroEthoEvoDevo -q normal -N 1
+sbatch bt2A.slurm
+
+# what are mapping efficiencies? 
+cat maps.e*
+
+# find out mapping efficiency for a particular input file (O9.fastq in this case)
+# (assuming all input files have different numbers of reads)
+grep -E '^[ATGCN]+$' O9.*trim | wc -l | grep -f - maps.e* -A 4 
+
+
+## Move forward with Burtoni files from this point as they had better mapping efficienry 
+
+ls *.bt2.sam > sams
+cat sams | wc -l  # number should match number of trim files
+
+# next stage is compressing, sorting and indexing the SAM files, so they become BAM files:
+cat sams | perl -pe 's/(\S+)\.sam/samtools import \$GENOME_FASTA $1\.sam $1\.unsorted\.bam && samtools sort -o $1\.sorted\.bam $1\.unsorted\.bam && java -Xmx5g -jar \$TACC_PICARD_T_DIR\/picard\.jar AddOrReplaceReadGroups INPUT=$1\.sorted\.bam OUTPUT=$1\.bam RGID=group1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=$1 && samtools index $1\.bam/' >s2b
+launcher_creator.py -j s2b -n s2b -t 4:00:00 -e imillercrews@utexas.edu -a NeuroEthoEvoDevo -q normal -N 12
+
+rm *sorted*
+ls *bam | wc -l  # should be the same number as number of trim files
+
+
+# =============================
+### rename files for SRA upload
+## need a file 'names.txt' that is tab seperated with <OldName> <NewName>
+## Create new folder with copy of all bams
+#may need to run 'dos2unix' on tab seperated naming file
+while read a b; do mv "$a" "$b"; done < renaming.bams.txt
+
+
+
+
+
+
+
+
