@@ -12,7 +12,7 @@ https://www.ncbi.nlm.nih.gov/bioproject/PRJNA754415
 
 The function for Weighted Outlier Paternity Index, along with example running through the samples, is in the R script 'WOPI_2bRAD_ParentageAnalysis.R'. TO run in the example, load in included 'WOPI.example.data.RData'. This command requires genotyping probability data to be in long format across both sites and genotypes (ex. AA, AB, BB). See below for an example data frame. It is recommended to remove sites with 'low info scores', that have equal probability to be any genotype at a specific site. For example, 'site.1' for 'Male1' in the below example.
 
-**Variable descriptions
+**Variable descriptions**
 
 Sample.name: Column with unique names for each sample
 
@@ -33,7 +33,7 @@ Afreq: A allele frequency at a specific site
 
 Bfreq: B allele frequency at a specific site
 
-**Example data
+**Example data**
 
 | Sample.name  | Sex | Marker  | Allele | GenotypeProbability |
 | ------------- | ------------- | ------------- | ------------- | ------------- |
