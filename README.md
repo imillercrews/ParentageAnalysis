@@ -12,7 +12,7 @@
 
 <details>
            <summary> ANGSD Commands </summary>
-           <p>Using script 'README_2bRAD_ParentageAnalysis_1' take raw 2bRAD fastq files to bams and then use ANGSD to output genotype probabilities, IBS matrix, and Heterozygosity.  </p>
+           <p>Using command line script 'README_2bRAD_ParentageAnalysis_ANGSD.txt' take raw 2bRAD fastq files to bams and then use ANGSD to output genotype probabilities and IBS matrix. To calculate heterozygosity statistics from bam files use 'README_2bRAD_ParentageAnalysis_Heterozygosity.txt'. </p>
          </details>
          
 <details>
