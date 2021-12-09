@@ -12,6 +12,27 @@ https://www.ncbi.nlm.nih.gov/bioproject/PRJNA754415
 
 The function for Weighted Outlier Paternity Index, along with example running through the samples, is in the R script 'WOPI_2bRAD_ParentageAnalysis.R'. TO run in the example, load in included 'WOPI.example.data.RData'. This command requires genotyping probability data to be in long format across both sites and genotypes (ex. AA, AB, BB). See below for an example data frame. It is recommended to remove sites with 'low info scores', that have equal probability to be any genotype at a specific site. For example, 'site.1' for 'Male1' in the below example.
 
+**Variable descriptions
+
+Sample.name: Column with unique names for each sample
+
+Sex: Column used to identify which type of sample is included: KnownParent, AllegedParent, Child. In the above example this would be 'F', 'M', 'B', respectively.
+
+Marker: Unique site marker name
+
+Allele: One of the genotypes for each site that a genotype probability can be assigned and need to be in the format: 'AA', 'AB', and 'BB'. 
+
+GenotypeProbability: The probability that a specific individual is a certain genotype at a given site. 
+
+*Optional
+Only needed if user wishes to supply their own allele frequency data instead of calculating from supplied data. 
+
+AlleleMarker: Denotes the site markers for supplied allele frequency 
+
+Afreq: A allele frequency at a specific site
+
+Bfreq: B allele frequency at a specific site
+
 **Example data
 
 | Sample.name  | Sex | Marker  | Allele | GenotypeProbability |
@@ -42,21 +63,6 @@ The function for Weighted Outlier Paternity Index, along with example running th
 | Child  | B | site.2 | BB  | 0.90  |
 
 *Missing sites and NA will be ignored 
-
-**Variable descriptions
-
-Sample.name: Column with unique names for each sample
-Sex: Column used to identify which type of sample is included: KnownParent, AllegedParent, Child. In the above example this would be 'F', 'M', 'B', respectively.
-Marker: Unique site marker name
-Allele: One of the genotypes for each site that a genotype probability can be assigned and need to be in the format: 'AA', 'AB', and 'BB'. 
-GenotypeProbability: The probability that a specific individual is a certain genotype at a given site. 
-
-*Optional
-Only needed if user wishes to supply their own allele frequency data instead of calculating from supplied data. 
-
-AlleleMarker: Denotes the site markers for supplied allele frequency 
-Afreq: A allele frequency at a specific site
-Bfreq: B allele frequency at a specific site
 
 ## Supplemental Scripts
 
