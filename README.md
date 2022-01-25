@@ -101,4 +101,9 @@ Bfreq: B allele frequency at a specific site
 <details>
            <summary> Heterozygosity Script </summary>
            <p>To calculate heterozygosity statistics from bam files use 'README_2bRAD_ParentageAnalysis_Heterozygosity.txt'. </p>
-         </details>      
+         </details>
+         
+<details>
+           <summary> In silico digestion estimates </summary>
+           <p>Using command line script 'Digestion_estimates_2bRAD_ParentageAnalysis.txt' to get a rough estimate of the number of digestion sites in a reference genome and the number of reads per sample with a digestion site present.  </p>
+         </details>
