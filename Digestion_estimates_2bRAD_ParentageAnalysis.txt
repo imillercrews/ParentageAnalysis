@@ -1,0 +1,39 @@
+#### in silico digestion estimates
+
+### check to see estimate of digestion sites
+## using 6 base digestion site for BcgI
+
+## burtoni reference
+#forward
+cat hbu_ref_AstBur1.0_chrUn.fa | tr -d "\n" | grep -o -E "CGA......TGC" | wc -l
+#45951
+
+#reverse
+cat hbu_ref_AstBur1.0_chrUn.fa | tr -d "\n" | grep -o -E "GCA......TCG" | wc -l
+#46006
+
+## nile tilapia reference
+#forward
+cat GCA_000188235.2_Orenil1.1_genomic.fna | tr -d "\n" | grep -o -E "CGA......TGC" | wc -l
+#42895
+
+#reverse
+cat GCA_000188235.2_Orenil1.1_genomic.fna | tr -d "\n" | grep -o -E "GCA......TCG" | wc -l
+#42849
+
+### check digestion sites per sample
+
+##get total number of reads for a sample
+expr $(cat Pool-GCACCC_S49_L002_R1_001.fastq | wc -l) / 4
+#11668083
+
+##get number of reads with forward cut site
+grep "CGA......TGC" Pool-GCACCC_S49_L002_R1_001.fastq | wc -l
+#4949500
+
+##get number of reads with reverse cut site
+grep "GCA......TCG" Pool-GCACCC_S49_L002_R1_001.fastq | wc -l
+#5304499
+
+##should account for vast majority of reads
+#(4949500 + 5304499) / 11668083 = 0.8788
