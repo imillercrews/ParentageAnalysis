@@ -27,7 +27,7 @@ Allele: One of the genotypes for each site that a genotype probability can be as
 
 GenotypeProbability: The probability that a specific individual is a certain genotype at a given site. 
 
-_*Optional_
+_*Optional:_
 Only needed if user wishes to supply their own allele frequency data instead of calculating from supplied data. 
 
 AlleleMarker: Denotes the site markers for supplied allele frequency 
